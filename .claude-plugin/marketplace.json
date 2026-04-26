@@ -1,0 +1,15 @@
+{
+  "name": "diagram-skills",
+  "owner": {
+    "name": "Christopher Choy"
+  },
+  "description": "Marketplace for the paper-figures Claude Code skill.",
+  "plugins": [
+    {
+      "name": "paper-figures",
+      "source": "./",
+      "description": "Publication-quality figures, plots, and diagrams for academic papers, with a render-view-fix iteration loop.",
+      "version": "0.1.0"
+    }
+  ]
+}
