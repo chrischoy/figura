@@ -1,0 +1,4 @@
+# Core deps. Install with: pip install -r requirements.txt
+matplotlib>=3.5
+numpy>=1.22
+cycler>=0.11

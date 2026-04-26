@@ -1,0 +1,12 @@
+# Optional deps used only by specific reference patterns / examples.
+# Install with: pip install -r requirements-extras.txt
+
+# Diagrams (references/diagrams.md)
+graphviz>=0.20    # Python wrapper. Also needs the `dot` binary on PATH:
+                  #   macOS: brew install graphviz
+                  #   Debian/Ubuntu: apt install graphviz
+cairosvg>=2.7
+drawsvg>=2.3
+
+# Plots (histogram/KDE example in references/plots.md)
+scipy>=1.10
