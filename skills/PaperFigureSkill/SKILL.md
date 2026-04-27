@@ -14,6 +14,7 @@ Make figures that look like a careful researcher made them, not the matplotlib d
 | Data plot (line, bar, scatter, heatmap, violin, error bars, multi-panel) | `references/plots.md` |
 | System / architecture diagram | `references/diagrams.md` |
 | Schematic, model illustration | `references/diagrams.md` |
+| TikZ / LaTeX diagram (flowchart, state machine, paper-native vector) | `references/tikz.md` |
 | Iterating on a rendered figure (view → fix → repeat) | `references/iteration.md` |
 | Pre-submission QA | `references/checklist.md` |
 | Color choices | `scripts/colors.py` (palettes) + the "Color" section below |
@@ -117,9 +118,10 @@ These scream "no thought given":
 
 ## Diagrams (Architecture / Schematic / Model Illustration)
 
-Three reasonable paths, depending on the diagram's character. Read `references/diagrams.md` for code patterns and tradeoffs.
+Four reasonable paths, depending on the diagram's character. Read `references/diagrams.md` for code patterns and tradeoffs.
 
 - **matplotlib custom drawing** — best when the diagram should match the visual style of your data figures (same fonts, same palette, same export pipeline). Layout is manual, but you get total control and one consistent look.
+- **TikZ / LaTeX** — best when the paper is already LaTeX and the diagram is a flowchart, state machine, or boxes-and-arrows: typography matches the paper body exactly, and the source is plain `.tex`. Build with `scripts/tikz_build.sh` (compile + 300 DPI PNG preview for the iteration loop). Template at `examples/diagram_flow.tex`. Full reference: `references/tikz.md`.
 - **graphviz** (via the `graphviz` Python package) — best when there are many nodes and auto-layout matters more than exact positioning. Less control over aesthetics but very fast for complex graphs.
 - **Hand-authored SVG** — best for one-off polished illustrations where layout is artistic and a layout engine would fight you. Slowest to build, most control.
 

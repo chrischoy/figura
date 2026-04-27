@@ -1,14 +1,15 @@
 # Diagrams: Architecture, Schematic, Model Illustration
 
-Three approaches, picked by the diagram's character:
+Four approaches, picked by the diagram's character:
 
 | Approach | Best for | Tradeoff |
 |----------|----------|----------|
 | **matplotlib custom drawing** | Diagrams that should match your data figures (same fonts, palette, export pipeline) | Manual layout — you place every box |
+| **TikZ / LaTeX** | LaTeX papers; flowcharts, state machines, boxes-and-arrows where you want crisp typography matching the paper body | Manual layout; LaTeX toolchain required. See `references/tikz.md`. |
 | **graphviz** | Many nodes, you want auto-layout (system diagrams, dataflow, dependency graphs) | Less aesthetic control |
 | **Hand-authored SVG** | One-off polished illustrations where layout is artistic | Slowest to build |
 
-For ML model architectures (transformer blocks, U-Nets, encoder-decoders), prefer matplotlib or hand-SVG — graphviz fights you on positioning. For pipeline / system / dataflow diagrams with 10+ nodes, graphviz earns its keep.
+For ML model architectures (transformer blocks, U-Nets, encoder-decoders), prefer matplotlib or hand-SVG — graphviz fights you on positioning. For pipeline / system / dataflow diagrams with 10+ nodes, graphviz earns its keep. For boxes-and-arrows in a LaTeX paper where you want diagram fonts to exactly match the body text, TikZ is the right tool — see `references/tikz.md` for the full template, build helper, and defect catalog.
 
 ---
 
@@ -236,10 +237,11 @@ d.save_png("figures/fig_diagram.png")
 
 A quick decision tree:
 
-- **Boxes-and-arrows with ≤10 nodes, want exact layout?** → matplotlib.
+- **Paper is LaTeX, diagram is boxes-and-arrows / flowchart / state machine?** → TikZ (`references/tikz.md`).
+- **Boxes-and-arrows with ≤10 nodes, want exact layout, paper isn't LaTeX?** → matplotlib.
 - **15+ nodes, layout would be tedious to do by hand?** → graphviz.
 - **Single hero diagram with non-grid layout (curves, branches, custom shapes)?** → SVG.
-- **Want it to match the rest of your paper figures stylistically?** → matplotlib (same pipeline) or SVG (manual color match).
+- **Want it to match the rest of your paper figures stylistically?** → matplotlib (same pipeline) for non-LaTeX papers; TikZ for LaTeX papers (matches body fonts and math).
 - **Need to regenerate as data changes?** → matplotlib or graphviz programmatically.
 
 Whichever you pick, run the QA checklist (`references/checklist.md`) before declaring done.

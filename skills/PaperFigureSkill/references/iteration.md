@@ -4,10 +4,12 @@ The point of iterating is that you write the figure code once and then look at i
 
 ## The Loop
 
-1. **Render** with `export.save(fig, name)` — produces PDF/SVG/PNG together.
+1. **Render.**
+   - matplotlib: `export.save(fig, name)` — produces PDF/SVG/PNG together.
+   - TikZ: `bash scripts/tikz_build.sh figures/my_fig.tex figures` — compiles the standalone PDF and emits a 300 DPI PNG preview (and SVG if `pdf2svg` is installed). See `references/tikz.md`.
 2. **View the PNG** using the `view` tool. The PNG is rendered at 300 DPI from a figure whose dimensions are the actual print size, so the pixels on screen correspond directly to what a reader sees on paper.
 3. **List defects** using the inspection prompt below. Be specific — "small fonts" is too vague; "y-axis tick labels (0.0, 0.2, ...) are unreadable; need to be ~2x larger" is actionable.
-4. **Apply fixes** from the catalog below.
+4. **Apply fixes** from the catalog below (matplotlib defects) or `references/tikz.md` (TikZ-specific defects: arrow-through-text, loop-arrow-crossing-nodes, label-on-wrong-segment).
 5. **Re-render and re-view.**
 6. **Stop** after at most **2 full fix cycles**, or when only sub-pixel / cosmetic issues remain. Figure work has a long tail of nitpicks that don't matter to readers — don't chase perfection.
 

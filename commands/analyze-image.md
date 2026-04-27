@@ -24,6 +24,14 @@ Categories to scan:
 - **Encoding** — series distinguishable from each other? If grayscale-printed, can you still tell them apart (color + line style or color + marker)? Diverging colormap centered on zero? `jet`/`rainbow` in use (auto-flag)?
 - **Layout** — whitespace evenly distributed or one region cramped while another is empty? Subplot panels visually balanced (similar plot areas, aligned axes)? Grouped bars: bars within a group close, gaps between groups?
 
+If the image is a **TikZ / boxes-and-arrows diagram** rather than a data plot, also scan for these defects (catalog: `skills/PaperFigureSkill/references/tikz.md` § "Defect catalog"):
+
+- **Arrow crosses through node text** — line passing through a label, often appearing to underline it. Common with `diamond` shapes.
+- **Loop-back arrow crosses unrelated nodes** — feedback edge from bottom row to top row passing through an unrelated node like an input box.
+- **Annotation label sits on top of a node body** — label placed at xy-midpoint of two nodes on different rows.
+- **Default Computer Modern serif font** instead of sans-serif — TikZ analog of "default DejaVu Sans"; classifies as **legibility** for the report.
+- **Sharp 90° corners on every box, raw `red`/`blue`/`green` colors** — TikZ analog of "default matplotlib"; classifies as **encoding** (palette not colorblind-safe) and **layout** (dated look).
+
 Report format (markdown table):
 
 ```
