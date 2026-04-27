@@ -1,5 +1,5 @@
 {
-  "name": "paper-figures",
+  "name": "PaperFigureSkill",
   "description": "Publication-quality figures, plots, and diagrams for academic papers, with a render-view-fix iteration loop.",
   "version": "0.1.0",
   "author": {
