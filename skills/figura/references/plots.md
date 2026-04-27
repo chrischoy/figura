@@ -23,6 +23,7 @@ Adapt the data, axes labels, and series names — the styling decisions are alre
 - [Heatmap (e.g. confusion matrix, correlation)](#heatmap)
 - [Violin / box plot for distributions](#violin--box-plot)
 - [Multi-panel figure (subplots)](#multi-panel-figure)
+- [Inset axes (zoomed view of a region)](#inset-axes-zoomed-view-of-a-region)
 - [Histogram / KDE for distributions](#histogram--kde)
 - [Ablation comparison bar chart](#ablation-comparison-bar-chart)
 - [3D surface (parametric or scalar field)](#3d-surface)
@@ -225,6 +226,7 @@ Two or more related plots side-by-side, with panel labels (a), (b), etc. Standar
 
 ```python
 fig, axes = plt.subplots(1, 3, figsize=pubstyle.figsize("double"),
+                         constrained_layout=True,
                          gridspec_kw=dict(wspace=0.32))
 palette = colors.categorical(3)
 x = np.linspace(0, 10, 100)
@@ -258,7 +260,41 @@ export.save(fig, "fig_multipanel")
 
 Notes:
 - `gridspec_kw=dict(wspace=0.32)` controls horizontal gap between panels. Tune until y-axis labels of one panel don't crowd the next panel's tick labels.
+- `constrained_layout=True` is the modern replacement for `tight_layout()`. Required if any panel has an inset axes or colorbar — `tight_layout` clips inset frames and miscalculates colorbar space. `constrained_layout` co-operates with `bbox_inches='tight'` on save (which `export.save` already passes).
 - Panel labels using `transform=ax.transAxes` place them in axes-relative coordinates so they stay put regardless of data range. `(-0.15, 1.05)` puts them outside the top-left corner.
+
+## Inset axes (zoomed view of a region)
+
+When a converged tail is visually crowded but contains the actual story (e.g., 4 of 5 lines cluster near the bottom of a log-y plot from epoch 30 onward), an inset axes preserves the full plot context while giving the cluster room to breathe. Better than a twin-axes layout (which violates the single-coordinate-frame expectation) and cleaner than splitting into two panels.
+
+```python
+fig, ax = plt.subplots(figsize=pubstyle.figsize("double"),
+                       constrained_layout=True)
+
+# ... plot 5 lines on the main axes (log-y, full epoch range) ...
+
+# Inset placed where data is sparse. For log-y descending from top-left,
+# put the inset at lower-right (legend stays top-right).
+axins = ax.inset_axes([0.45, 0.10, 0.5, 0.45])  # [x0, y0, w, h] in axes fractions
+for name, (epochs, mean, std), c, ls in zip(...):
+    axins.plot(epochs, mean, color=c, linestyle=ls, lw=lw)
+    axins.fill_between(epochs, mean-std, mean+std, color=c, alpha=0.18, lw=0)
+
+# Pad y-range ~10% beyond the headline's std band so the line doesn't
+# touch the inset frame (touching reads as clipping).
+axins.set_xlim(30, 60)
+axins.set_ylim(20.8, 26.2)         # not [21, 26] — too tight for headline at 21.56
+axins.tick_params(labelsize=6)
+
+ax.indicate_inset_zoom(axins, edgecolor='black', alpha=0.4)
+ax.legend(loc='upper right', fontsize=7, framealpha=0.9)
+```
+
+Notes:
+- Inset placement is the iteration loop's most common defect: inset bbox `[0.45, 0.45, 0.5, 0.45]` (upper-right) collides with the standard top-right legend. Pick the inset corner where the data is sparse, not the corner where the layout looks balanced.
+- Don't use `tight_layout()` with insets — it clips the inset frame.
+- `ax.indicate_inset_zoom(axins, ...)` draws the connector lines; check they don't cross the legend during view-pass.
+- For the inset's y-range, give the headline line ~10% margin beyond its std band. Lines hugging the inset frame edge read as clipping.
 
 ## Histogram / KDE
 

@@ -6,6 +6,8 @@ allowed-tools: ["Bash", "Read", "Edit", "Write"]
 
 Fix overlap/collision defects in the figure produced by `$ARGUMENTS`. Targeted version of `/figura:iterate` — only address the collision/overlap class, not legibility or color issues.
 
+If `$ARGUMENTS` is empty, ask the user which file to fix. Do not improvise.
+
 Dispatch on file extension:
 
 - `*.py` → **matplotlib branch** below.

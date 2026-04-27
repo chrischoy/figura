@@ -6,6 +6,8 @@ allowed-tools: ["Bash", "Read", "Edit", "Write"]
 
 Beautify the figure produced by `$ARGUMENTS`. The skill at `skills/figura/` documents the policy — apply it, do not improvise.
 
+If `$ARGUMENTS` is empty, ask the user which file to beautify. Do not improvise (no globbing, no guessing). The user usually knows which figure needs the upgrade.
+
 Dispatch on file extension:
 
 - `*.py` → **matplotlib branch** below.

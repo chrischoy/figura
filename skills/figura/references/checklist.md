@@ -14,6 +14,19 @@ Verify font embedding from a shell:
 pdffonts figures/fig_results.pdf
 ```
 
+For batch / CI verification across a paper's figures, gate on Type 3 absence:
+```bash
+for f in figures/*.pdf; do
+  n=$(pdffonts "$f" | grep -c -i 'Type 3')
+  echo "$f: Type3 count=$n"
+done
+# Empty grep = pass. Any "Type 3" line = fix needed (usually mathtext.fontset).
+```
+
+Reading `pdffonts` output:
+- `TrueType` / `CID TrueType` / `Type 1C` / `CID Type 0` with `emb yes` — all good.
+- `Type 3` — **fail.** Common cause: `mathtext.fontset='cm'` slipping a Computer Modern math glyph into a PDF whose primary fonts are TrueType. Fix by switching to `'stixsans'` or `'dejavusans'` (both Type 42-safe). `pubstyle.apply()` already does this.
+
 `pdffonts` ships with poppler — `brew install poppler` (macOS) or
 `apt install poppler-utils` (Debian/Ubuntu) if it's missing.
 
@@ -50,7 +63,8 @@ pdffonts figures/fig_results.pdf
 
 ## Consistency across the paper
 
-- [ ] **Same palette across all figures.** If Method X is blue in Figure 2, it should be blue in Figure 4. Define the mapping once and pass it explicitly.
+- [ ] **Same palette across all figures.** If Method X is blue in Figure 2, it should be blue in Figure 4. Define the config→color map once at the start of the project and pass it explicitly to every plotting call. For configs that share a hue family across panels (e.g. two blues), distinguish via `linestyle` and `linewidth` — three channels survive grayscale print.
+- [ ] **'Ours = blue' is fine when each figure has a different "ours" config.** Reader identifies the headline instantly. Different Python codepaths can share `#0072B2` so long as they don't co-appear in a single panel.
 - [ ] **Same fonts across all figures.** `pubstyle.apply()` ensures this for matplotlib-produced figures; check hand-SVG and graphviz outputs match.
 - [ ] **Comparable axes use the same scale.** If two panels show accuracy, give them the same y-limits.
 

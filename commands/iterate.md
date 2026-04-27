@@ -6,6 +6,10 @@ allowed-tools: ["Bash", "Read", "Edit", "Write"]
 
 Run the iteration loop on `$ARGUMENTS`. The skill at `skills/figura/` ships the full procedure in `references/iteration.md` (matplotlib defects) and `references/tikz.md` (TikZ defects) — use them.
 
+If `$ARGUMENTS` is empty, ask the user which figure script to iterate on before proceeding. Do not improvise.
+
+**Use this when** you can re-render the figure yourself and want to fix defects without verbal back-and-forth with the user. If the user is in the loop describing each defect, the manual edit-and-rerender path may be faster.
+
 Dispatch on file extension:
 
 - `*.py` → **matplotlib branch** (data plot, matplotlib diagram).

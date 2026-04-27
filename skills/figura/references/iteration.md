@@ -52,6 +52,15 @@ LAYOUT
 - Are subplot panels visually balanced (similar plot areas, aligned axes)?
 - For grouped bar charts: are bars within a group close enough to read as a group, with gaps between groups?
 
+DYNAMIC RANGE / AXIS SCALING
+- Does any axis have one feature (outlier, dominant regime, plateau) that consumes >80% of the visual area while the comparison-relevant range is compressed into <20%?
+- On a linear y-axis, does an outlier or one tall bar squeeze the meaningful spread into a thin strip?
+- On a histogram with linear y-density, do bins that differ by orders of magnitude in count make the small bins effectively invisible?
+- On a decay-to-zero curve, does most of the x-axis sit on the post-convergence flat region, hiding the timescale where the action happens?
+- On linear-spaced histogram bins, does data spanning orders of magnitude in x cluster into one or two bins?
+
+For multi-panel figures, walk panels in reading order (top-left → top-right → bottom-left → bottom-right). Report defects per-panel.
+
 For each defect, describe:
 - WHICH element (e.g., "x-axis tick labels in panel (b)")
 - WHAT's wrong (e.g., "collide with each other after the rotation")
@@ -104,6 +113,8 @@ When the inspection turns up an issue, find it in the table below for the standa
 | Panel labels (a), (b), (c) clipped | Use axes-relative coords with margin: `ax.text(-0.18, 1.05, "(a)", transform=ax.transAxes, fontweight="bold", fontsize=10)` |
 | Y-axis labels of left panels run into right panel's tick labels | Bump wspace, or use shared y-axis: `plt.subplots(..., sharey=True)` |
 | Outer figure margins too tight | `fig.tight_layout()` before save (export.save uses `bbox_inches="tight"` already, which usually catches this) |
+| Inset axes frame clipped, or colorbar pushed into adjacent panel's tick labels | Replace `tight_layout()` with `plt.subplots(..., constrained_layout=True)`. `tight_layout` doesn't account for inset frames or cbars in 2×2 grids; constrained_layout does, and co-operates with `bbox_inches='tight'` on save. |
+| Colorbar in panel (c) of 2×2 still encroaches on panel (d) y-labels after constrained_layout | Move colorbar **inside** panel (c) as an inset: `cax = ax_c.inset_axes([0.85, 0.05, 0.04, 0.5]); fig.colorbar(im, cax=cax)`. Doesn't push panel (d) at all. |
 
 ### Truncation / Clipping
 
@@ -126,12 +137,32 @@ When the inspection turns up an issue, find it in the table below for the standa
 | 3D surface looks flat / banded (no volumetric depth) | `LightSource.shade(coord, cmap)` lit by a parametric coord (U, V, θ) gives angular bands. Switch to `ls.shade(Z, cmap=cmap, blend_mode="soft", vert_exag=2-3)` so the lighting comes from depth |
 | 3D surface has Moiré aliasing on the mesh | Replace `rstride=1, cstride=1` with `rcount=n_v, ccount=n_u` (sample counts, not steps) and `antialiased=False` |
 
+### Dynamic Range / Axis Scaling
+
+When one feature of the data dominates the axis and squeezes the comparison band into a strip. Most-hit defect class on real papers.
+
+| Defect | Fix |
+|--------|-----|
+| Outlier on linear y-axis squeezes the comparison band into <20% of the panel | Cap y-axis at the comparison-relevant max + 10% headroom; mark the off-panel outlier with a broken-axis indicator + arrow annotation (snippet in "Axis Range / Ticks" below) |
+| Histogram with linear y-density on data spanning orders of magnitude | `ax.set_yscale('log')` on the density axis. For zero-inclusive distributions use `'symlog'` with `linthresh=` near the smallest non-zero density |
+| Linear-spaced bins on data spanning orders of magnitude in x | `bins = np.geomspace(data.min(), data.max(), N)` and `ax.set_xscale('log')`. For zero-inclusive data use `np.concatenate([[0], np.geomspace(eps, max, N)])` |
+| `density=True` on histograms when sample counts differ across groups | Density hides effective sample size. Either annotate `n=` in the legend, or use raw counts with separate panels, or normalize by group max instead of integral |
+| Bin count too high (jagged histogram) or too low (smoothed-over modes) | Start with `bins=int(np.sqrt(n))` (Rice rule) or `'fd'` (Freedman-Diaconis: `bins='fd'`). Use KDE overlay for visual smoothing without committing to one bin count |
+| Decay-to-zero curve where 90% of the x-axis is post-convergence flatline | `ax.set_xscale('log')` to spread early steps; or use an inset axes for the early-step region (`ax.inset_axes([0.4, 0.3, 0.55, 0.6])`) showing the action with main axes preserving the full range |
+| Multi-modal distribution where modes differ by orders of magnitude in density | Log y-density (above) **plus** annotate each mode with text (`'early steps'` / `'late steps'`) — the log scale is honest but the modes still need labels for fast skim |
+
 ### Axis Range / Ticks
 
 | Defect | Fix |
 |--------|-----|
 | Bar chart y-axis doesn't start at 0 (misleading) | `ax.set_ylim(0, ...)`. If you have a legitimate reason to truncate, use a "broken axis" instead and state it in the caption |
 | Y-axis range too wide (data squashed) | `ax.set_ylim(actual_min - 0.05*range, actual_max + 0.05*range)` |
+| One outlier point lives above the panel (would distort y-range if shown) | Don't mark with a red `×` — reads as "error/excluded data point" in scientific figures. Use a broken-axis indicator + arrow annotation: <br>```python<br>d = .015<br>kw = dict(transform=ax.transAxes, color='k', clip_on=False, lw=0.8)<br>ax.plot((-d, +d), (0.96-d, 0.96+d), **kw)<br>ax.plot((-d, +d), (0.94-d, 0.94+d), **kw)<br>ax.annotate('config X: 73.9° (diverged)',<br>            xy=(x_outlier, ax.get_ylim()[1]*0.97),<br>            xytext=(x_outlier-0.2, ax.get_ylim()[1]*0.85),<br>            arrowprops=dict(arrowstyle='->', lw=0.8), fontsize=7)<br>```|
+| Bar chart with one giant bar buries the spread of the others | If the giant bar is rhetorical ("raw beats nothing, obvious") not informational, **drop it** and put the value in the caption ("baseline X: 38.7° off-chart"). The y-range then fits the comparison that actually matters. Alternative: broken-axis at y=N where N just clears the small bars. |
+| Inset axes overlap legend (both top-right) | Place inset where data is sparse. For log-y plots descending from upper-left, lines crowd the bottom — put inset at `ax.inset_axes([0.45, 0.10, 0.5, 0.45])` (lower-right). Keep legend top-right. Or move legend below figure: `bbox_to_anchor=(0.5, -0.18), ncol=N`. |
+| Inset y-range too tight on the headline line | Headline line touching the inset frame edge looks like clipping. Pad the inset y-range by ~10% beyond the headline's std band: if the headline is at 21.56 ± 0.06, set inset `ylim=[20.8, 26.2]` not `[21, 26]`. |
+| Reference line on a viridis scatter is hard to spot | Don't use gray (`#A6A6A6`) for the reference — it sits inside viridis's mid-luminance range and reads as "mid-value data point". Use black (`#1A1A1A`); it falls outside the viridis spectrum and reads as "annotation, not data". |
+| Bimodal histogram with empty middle reads as one weird distribution | Add 7pt text annotations near each peak (`'early steps'` / `'late steps'`), or a vertical dashed line at the gap boundary, or hatching (`hatch='//'` vs `hatch='\\\\'`) on top of color+alpha. Annotations are usually cheapest. |
 | Log axis with bad ticks | `ax.set_xscale("log"); ax.set_xticks([1e3, 1e4, 1e5, 1e6])` and use `LogFormatterSciNotation` for clean labels |
 | Heatmap cell values invisible (low contrast) | Flip annotation color at midpoint: `color="white" if value < 0.5 * vmax else "black"` |
 

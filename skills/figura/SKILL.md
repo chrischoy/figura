@@ -99,6 +99,17 @@ Never use `jet`, `rainbow`, `hsv`, or `nipy_spectral`. They're perceptually nonl
 
 If the paper might be printed in grayscale, **encode each series in two channels**: color *and* line style, or color *and* marker shape. Color alone is fragile.
 
+### Multi-figure papers: lock the palette once
+
+When the same configs appear across multiple figures, define the config→color map **once** at the start of the project and pass it explicitly to every plotting call. Reader scans across figures looking for the same hue; drift breaks the mental thread.
+
+- **Same Python config = same color across all figures.** If `svd_train` is vermillion in Figure 2, it stays vermillion in Figure 5.
+- **Linestyle distinguishes within a panel** when configs share a hue family (two warm hues, two blues). Three channels of distinction (color + linestyle + lw) survive both grayscale print and tritanopia.
+- **'Ours = blue' convention beats strict per-config color** when each figure has a different "ours" config. Reader instantly identifies the headline; different Python codepaths headlining different figures can both be `#0072B2` so long as they don't co-appear in a panel.
+- **Avoid `#F0E442` yellow** for primary line series — washes out on white at print size. Reserve for filled regions.
+
+For a multi-figure dispatch (parallel subagents producing one figure each), inject the palette table as a literal string in every subagent prompt — don't ask each to derive it from spec. Subagents drift on style minutiae if given freedom.
+
 ## Anti-Patterns (the "default matplotlib" tells)
 
 These scream "no thought given":
@@ -109,6 +120,9 @@ These scream "no thought given":
 - **Saving as JPEG.** Compression artifacts on every line and letter. PNG for raster, PDF/SVG for vector. (`export.save()` warns on JPEG.)
 - **Drop shadows, gradient fills, beveled bars, 3D effects.** Tufte-defined chartjunk. Information density goes down, ink-to-data ratio goes up.
 - **Rasterized text in a vector file.** Defeats the entire point. `pubstyle.apply()` sets `pdf.fonttype = 42` to keep text as text.
+- **`mathtext.fontset = "cm"`.** Computer Modern math historically emits Type 3 glyphs even with `pdf.fonttype=42`, slipping past the embedding gate. `pubstyle.apply()` defaults to `"stixsans"` (Type 42-safe and matches sans body text). Don't override to `"cm"` — verify with `pdffonts fig.pdf | grep -i type3` if in doubt.
+- **`tight_layout()` with inset axes / colorbars.** `tight_layout` clips inset frames and miscalculates space around colorbars. Use `plt.subplots(..., constrained_layout=True)` instead; it co-operates with `bbox_inches='tight'` on save.
+- **Red `×` markers for off-panel / divergent data.** Reads as "error / excluded data point" in scientific figures, not "value lives above the panel." Use a broken-axis indicator (`//` marks on the y-axis) plus an upward arrow + text annotation.
 - **Tiny fonts only readable at design size.** Designing at 12 inches and shipping at 3.3 inches makes 8pt → 2.2pt. Design at print size from the start.
 - **Legend covering data.** Move it, shrink it, or pull it out into its own panel.
 - **Color-only encoding for grayscale-printable content.** Add a second channel (line style, marker shape, hatching).
@@ -152,3 +166,18 @@ For the final pre-submission audit (font embedding, format, etc., separate from 
 - Final pre-submission check → `references/checklist.md`
 
 Each reference file's code snippets already use `pubstyle`, `colors`, and `export` so they drop in directly.
+
+## Slash Commands: which one to reach for
+
+The plugin ships four user-facing commands. Pick by which class of work dominates:
+
+| Situation | Command |
+|---|---|
+| Rendered figure looks like default matplotlib (DejaVu Sans, four spines, tab10) | `/figura:beautify` |
+| Rendered figure has overlap/collision defects (legend covers data, ticks collide) | `/figura:fix-overlap` |
+| Rendered figure has mixed defects across categories | `/figura:iterate` |
+| Need a defect report without modifying anything | `/figura:analyze-image` |
+| jet/rainbow palette in use, or color-only encoding | `/figura:beautify` |
+| Dynamic-range squeeze (outlier dominates axis, comparison band compressed) | `/figura:iterate` |
+
+`/figura:analyze-image` is read-only. The other three modify the source. After analyze-image returns its defect table, route to the modifying command whose category dominates.
