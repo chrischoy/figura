@@ -24,7 +24,7 @@
 </h4>
 
 <p align="center">
-    <img src="docs/iteration_loop.png" alt="figura iteration loop"/>
+    <img src="assets/iteration_loop.png" alt="figura iteration loop"/>
 </p>
 
 
@@ -218,9 +218,8 @@ skills/
     figures/                 example outputs (gitignored)
 assets/
   figura-icon.png            project icon
-docs/
-  iteration_loop.png         README iteration-loop hero
-  torus.png                  reference output of skills/figura/examples/torus.py
+  iteration_loop.png         README iteration-loop hero (PDF source-of-truth: figures/iteration_loop.tex)
+  iteration_loop.pdf         vector copy of the iteration-loop hero
 README.md
 requirements.txt             core Python deps (host env, not Claude Code)
 requirements-extras.txt      optional deps for diagram / SVG / scipy patterns
