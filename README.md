@@ -28,6 +28,15 @@ Reload plugins:
 
 The skill auto-triggers on phrases like "figure for my paper", "plot for the manuscript", "architecture diagram", "publication-quality", "submission-quality figure", or any reference to LaTeX, NeurIPS, ICML, ICLR, IEEE, ACM, Nature, Science, or arXiv.
 
+The plugin also exposes four slash commands:
+
+| Command | What it does |
+|---------|--------------|
+| `/PaperFigureSkill:iterate <script.py>` | Runs the render → view → fix loop on a figure script. Caps at two cycles. |
+| `/PaperFigureSkill:beautify <script.py>` | Upgrades a "default matplotlib"-looking figure to publication style (fonts, palette, spines, vector export). |
+| `/PaperFigureSkill:fix-overlap <script.py>` | Targeted collision fixer — tick labels, legend, multi-panel, panel labels. |
+| `/PaperFigureSkill:analyze-image <image>` | Read-only visual audit. Reports defects by category and severity; does not modify anything. |
+
 If you prefer to install by hand, clone the repo into your skills directory:
 
 ```
@@ -60,6 +69,11 @@ Claude renders `figures/fig_torus.{pdf,svg,png}` in your working directory and v
 .claude-plugin/
   marketplace.json         — declares this repo as a single-plugin marketplace
   plugin.json              — plugin metadata
+commands/
+  iterate.md               — /PaperFigureSkill:iterate — render→view→fix loop
+  beautify.md              — /PaperFigureSkill:beautify — upgrade to pub style
+  fix-overlap.md           — /PaperFigureSkill:fix-overlap — targeted collision fix
+  analyze-image.md         — /PaperFigureSkill:analyze-image — read-only audit
 skills/
   PaperFigureSkill/
     SKILL.md               — entry point; loaded into Claude's context
