@@ -1,28 +1,62 @@
-# figura
-
-> **Publication-quality figures, plots, and diagrams for academic papers — with a render → view → fix loop that catches visual defects at print size.**
-
-A Claude Code plugin. Works on **matplotlib** (`.py`) and **TikZ / LaTeX** (`.tex`) sources through a single shared iteration loop.
+<h1 align="center">
+    <img src="assets/figura-icon.png" width="160" alt="figura">
+</h1>
 
 <p align="center">
-  <img src="docs/torus.png" width="320" alt="Torus example — single-column square, viridis surface shaded by depth, Helvetica embedded in the PDF."/>
+    <i align="center">Publication-quality figures, plots, and diagrams for academic papers — render → view → fix until print-size defects are gone 🧪</i>
 </p>
 
----
-
-## The iteration loop
-
-Every figure goes through the same loop, regardless of backend. **Stop after at most two fix cycles** — figure work has a long tail of nitpicks readers never notice.
+<h4 align="center">
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="license" style="height: 20px;">
+  </a>
+  <a href="https://docs.claude.com/en/docs/claude-code/overview">
+    <img src="https://img.shields.io/badge/claude%20code-plugin-d97757.svg?style=flat-square" alt="claude code plugin" style="height: 20px;">
+  </a>
+  <a href="https://www.latex-project.org/">
+    <img src="https://img.shields.io/badge/output-PDF%20%C2%B7%20SVG%20%C2%B7%20PNG-009E73.svg?style=flat-square" alt="output formats" style="height: 20px;">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/backends-matplotlib%20%C2%B7%20TikZ-0072B2.svg?style=flat-square" alt="backends" style="height: 20px;">
+  </a>
+</h4>
 
 <p align="center">
-  <img src="docs/iteration_loop.png" width="640" alt="Render → view → fix iteration loop diagram."/>
+    <img src="docs/iteration_loop.png" alt="figura iteration loop"/>
 </p>
 
-The loop preview PNG is rendered at 300 DPI from a figure sized to the actual print dimensions, so on-screen pixels correspond directly to what a reader sees on paper. (This diagram itself was built with the TikZ branch — source at `figures/iteration_loop.tex`.)
 
----
+## Introduction
 
-## Install
+`figura` enables you to produce paper-ready figures, plots, and diagrams without falling into the "default matplotlib" or "default TikZ" look that gives away a rushed submission.
+
+It ships as a [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) plugin: an auto-triggering skill plus four slash commands that run the same render → view → fix loop on every figure. The skill knows how to inspect a rendered PNG at print resolution, find user-visible defects, and apply standard fixes from a defect catalog — capped at two cycles so you don't chase pixels.
+
+Two backends sit behind one workflow: **matplotlib** (`.py`) for data plots and **TikZ / LaTeX** (`.tex`) for diagrams that match a paper's body typography. Same Okabe-Ito colorblind-safe palette, same Helvetica defaults, same export pipeline.
+
+<details open>
+<summary>
+ Features
+</summary> <br />
+
+<p align="center">
+    <img width="49%" src="docs/torus.png" alt="3D surface plot — torus shaded by depth, viridis, single-column square"/>
+&nbsp;
+    <img width="49%" src="docs/iteration_loop.png" alt="render → view → fix → repeat iteration loop"/>
+</p>
+
+- **Render → view → fix loop, capped at two cycles.** First-pass renders almost always have at least one user-visible defect (small fonts, legend overlap, tick collision, arrow-through-text). The plugin views the rendered PNG at 300 DPI scaled to print size, names defects from a catalog, and applies standard fixes.
+- **matplotlib pipeline that matches Nature / NeurIPS / IEEE house style.** Embedded TrueType fonts (`pdf.fonttype = 42`), Helvetica + `stixsans` math, top/right spines off, Okabe-Ito categorical palette, perceptually uniform colormaps, print-size figure dimensions. `export.save()` emits PDF + SVG + PNG atomically.
+- **TikZ standalone diagrams that drop straight into a LaTeX paper.** `\documentclass[tikz,border=4pt]{standalone}`, the same Okabe-Ito hex codes as the matplotlib palette, reusable `stage` / `decision` / `io` styles, build helper that compiles to PDF and a 300 DPI PNG preview for the iteration loop.
+- **Defect catalog covering both backends.** matplotlib: tick collisions, legend covering data, multi-panel cramping, panel labels clipped. TikZ: arrow-through-diamond-text, loop-arrow-crossing-rows, label-on-top-of-node — each with copy-paste fix snippets.
+- **Four slash commands that dispatch on extension.** `/figura:iterate`, `/figura:beautify`, `/figura:fix-overlap`, `/figura:analyze-image`. `.py` → matplotlib branch. `.tex` → TikZ branch.
+
+</details>
+
+
+## Usage
+
+The fastest path is the Claude Code marketplace. Inside Claude Code:
 
 ```text
 /plugin marketplace add chrischoy/figura
@@ -30,9 +64,28 @@ The loop preview PNG is rendered at 300 DPI from a figure sized to the actual pr
 /reload-plugins
 ```
 
-Auto-triggers on phrases like *"figure for my paper"*, *"plot for the manuscript"*, *"architecture diagram"*, *"publication-quality"*, *"submission-quality figure"*, or any reference to LaTeX, NeurIPS, ICML, ICLR, IEEE, ACM, Nature, Science, or arXiv.
+Then, in any project:
 
-### Slash commands
+```text
+Make a publication-quality 3D plot of a torus
+```
+
+Claude renders `figures/fig_torus.{pdf,svg,png}`, views the PNG, and verifies legibility at print size before declaring the figure done. The matching script lives at `skills/figura/examples/torus.py`.
+
+For a TikZ diagram:
+
+```text
+Make a TikZ flowchart of an encoder → decoder pipeline
+```
+
+`figures/<name>.{pdf,png}` (and `.svg` if `pdf2svg` is installed). Template: `skills/figura/examples/diagram_flow.tex`.
+
+The skill also auto-triggers on phrases like *"figure for my paper"*, *"plot for the manuscript"*, *"architecture diagram"*, *"publication-quality"*, *"submission-quality figure"*, or any reference to LaTeX, NeurIPS, ICML, ICLR, IEEE, ACM, Nature, Science, or arXiv.
+
+<details>
+<summary>
+  Slash commands
+</summary> <br />
 
 All four commands dispatch on file extension: `.py` → matplotlib branch, `.tex` → TikZ branch.
 
@@ -43,9 +96,12 @@ All four commands dispatch on file extension: `.py` → matplotlib branch, `.tex
 | `/figura:fix-overlap <script.py \| diagram.tex>` | Targeted collision fixer — tick labels & legend (matplotlib) or arrow-through-text & loop-arrow-crossing-nodes (TikZ). |
 | `/figura:analyze-image <image.png \| .pdf>` | Read-only visual audit. Reports defects by category and severity; does not modify anything. |
 
-### Manual install
+</details>
 
-If you prefer to install by hand:
+<details>
+<summary>
+  Manual install (without the marketplace)
+</summary> <br />
 
 ```bash
 git clone https://github.com/chrischoy/figura ~/.claude/skills/figura-src
@@ -53,112 +109,88 @@ ln -s ~/.claude/skills/figura-src/skills/figura ~/.claude/skills/figura
 /reload-skills
 ```
 
-### Python deps (host environment)
+</details>
 
-Claude Code does not manage Python. Install from a clone — the plugin install path is implementation-defined.
 
-```bash
-git clone https://github.com/chrischoy/figura /tmp/figura
-pip install -r /tmp/figura/requirements.txt
-pip install -r /tmp/figura/requirements-extras.txt   # optional
-```
+## Development
 
-### TikZ deps
+Alternatively, instead of using `figura` exclusively through Claude Code, the underlying scripts and TikZ helpers can be invoked directly — useful for one-off figures, CI builds, or contributions. If contributing, please refer to the [contributing](#contributing_anchor) section.
 
-For the TikZ branch (`/figura:* diagram.tex`):
+<details open>
+<summary>
+Pre-requisites
+</summary> <br />
 
-- `pdflatex` (TeX Live or MacTeX). `lualatex` works too via `TIKZ_ENGINE=lualatex`.
-- `pdftoppm` for PNG previews — `brew install poppler` / `apt install poppler-utils`.
-- `pdf2svg` (optional) — emits an SVG alongside the PDF.
+To be able to use figura locally, make sure that you have the following installed:
 
-For graphviz diagrams: `brew install graphviz` / `apt install graphviz`.
+###
 
----
+- Python 3.9+
+- TeX Live or MacTeX (for the TikZ branch)
+- `pdftoppm` (`brew install poppler` / `apt install poppler-utils`) — PNG previews
+- `pdf2svg` *(optional)* — emits an SVG alongside the PDF
+- Graphviz *(optional, for graphviz diagrams)* — `brew install graphviz` / `apt install graphviz`
 
-## First run
+</details>
 
-Inside Claude Code:
+<details open>
+<summary>
+Running figura locally
+</summary> <br />
 
-```text
-Make a publication-quality 3D plot of a torus
-```
+> **Note**
+> Claude Code does not manage Python. Install dependencies in your host environment (system, venv, or conda — your choice).
 
-`figures/fig_torus.{pdf,svg,png}` lands in your working directory and Claude views the PNG to verify legibility at print size. Matching script: `skills/figura/examples/torus.py`.
+1. Clone the repository and install dependencies:
+   ```bash
+   git clone https://github.com/chrischoy/figura.git && cd figura
+   pip install -r requirements.txt
+   pip install -r requirements-extras.txt   # optional
+   ```
 
-For TikZ:
+2. Render a matplotlib figure:
+   ```python
+   import sys
+   sys.path.insert(0, "skills/figura/scripts")
 
-```text
-Make a TikZ flowchart of an encoder → decoder pipeline
-```
+   import matplotlib
+   matplotlib.use("Agg")
+   import matplotlib.pyplot as plt
+   import pubstyle, colors, export
 
-`figures/<name>.{pdf,png}` (and `.svg` if `pdf2svg` is installed). Template: `skills/figura/examples/diagram_flow.tex`.
+   pubstyle.apply()
+   colors.apply_cycle()
 
----
+   fig, ax = plt.subplots(figsize=pubstyle.figsize("single"))
+   ax.plot([1, 2, 3], [1, 4, 2])
+   ax.set_xlabel("x"); ax.set_ylabel("y")
 
-## Quick start without Claude Code
+   export.save(fig, "fig_demo")    # writes ./figures/fig_demo.{pdf,svg,png}
+   ```
 
-### matplotlib
+3. Render a TikZ diagram:
+   ```bash
+   cp skills/figura/examples/diagram_flow.tex figures/my_fig.tex
+   # edit nodes / edges
+   bash skills/figura/scripts/tikz_build.sh figures/my_fig.tex figures
+   # writes figures/my_fig.{pdf,png} — view the PNG, iterate
+   ```
 
-```python
-import sys
-sys.path.insert(0, "<path-to-repo>/skills/figura/scripts")
+   In your paper:
+   ```latex
+   \includegraphics[width=\columnwidth]{figures/my_fig}
+   ```
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import pubstyle, colors, export
+4. Venue-specific defaults: `pubstyle.apply(venue="ieee")` (also `neurips`, `icml`, `iclr`, `acm`, `nature`).
 
-pubstyle.apply()
-colors.apply_cycle()
+5. Engine override for TikZ: `TIKZ_ENGINE=lualatex bash skills/figura/scripts/tikz_build.sh ...`.
 
-fig, ax = plt.subplots(figsize=pubstyle.figsize("single"))
-ax.plot([1, 2, 3], [1, 4, 2])
-ax.set_xlabel("x"); ax.set_ylabel("y")
+</details>
 
-export.save(fig, "fig_demo")    # writes ./figures/fig_demo.{pdf,svg,png}
-```
-
-Venue-specific defaults: `pubstyle.apply(venue="ieee")` (also `neurips`, `icml`, `iclr`, `acm`, `nature`).
-
-### TikZ
-
-```bash
-cp skills/figura/examples/diagram_flow.tex figures/my_fig.tex
-# edit nodes / edges
-bash skills/figura/scripts/tikz_build.sh figures/my_fig.tex figures
-# writes figures/my_fig.{pdf,png} — view the PNG, iterate
-```
-
-In your paper: `\includegraphics[width=\columnwidth]{figures/my_fig}`.
-
----
-
-## What it fixes
-
-Defaults that the upstream tools ship with are designed for screen exploration, not print. The skill fixes the most common "default" tells.
-
-**matplotlib**
-
-- Embedded TrueType fonts in PDFs (`pdf.fonttype = 42`) — journals reject Type 3.
-- Helvetica/Arial body text + matching `stixsans` math glyphs.
-- Top/right spines off, subtle ticks, no gridlines by default.
-- Colorblind-safe categorical palette (Okabe-Ito) + perceptually uniform sequential (`viridis`/`cividis`) and diverging (`RdBu_r`) recommendations.
-- Print-size figure dimensions baked into the helpers, so 8 pt fonts stay 8 pt.
-- `export.save()` writes PDF + SVG + PNG together with `bbox_inches="tight"`, atomically (temp + replace), with path-traversal guard.
-
-**TikZ**
-
-- `\documentclass[tikz,border=4pt]{standalone}` so the diagram crops tight and `\includegraphics{}` cleanly.
-- `\usepackage{helvet}` + sans-serif default — Helvetica matching the matplotlib pipeline, not Computer Modern serif.
-- Okabe-Ito hex defs (`okBlue`, `okOrange`, …) — exact same palette as `scripts/colors.py`, so TikZ diagrams and matplotlib plots match.
-- Reusable `stage` / `decision` / `io` styles defined once at the top of `tikzpicture`.
-- Uniform `Stealth` arrowheads, `0.7pt` lines, `rounded corners=2pt`.
-- `font=\small` so text stays readable when shrunk to `\columnwidth`.
-- Defect catalog covering the bugs that always appear in the first render — arrow-through-diamond-text, loop-arrow-crossing-rows, label-on-top-of-node — with copy-paste fixes.
-
----
-
-## Layout
+<details>
+<summary>
+Repository layout
+</summary> <br />
 
 ```text
 .claude-plugin/
@@ -188,6 +220,8 @@ skills/
       torus.py               runnable end-to-end 3D surface example
       diagram_flow.tex       runnable TikZ standalone flowchart template
     figures/                 example outputs (gitignored)
+assets/
+  figura-icon.png            project icon
 docs/
   torus.png                  README hero image
   iteration_loop.png         README iteration-loop diagram
@@ -196,43 +230,26 @@ requirements.txt             core Python deps (host env, not Claude Code)
 requirements-extras.txt      optional deps for diagram / SVG / scipy patterns
 ```
 
----
+</details>
 
-## Generating a logo / icon for figura
 
-For a project icon (favicon, plugin marketplace card, social preview), feed an image-generation model the prompt below. It encodes the same aesthetic the skill enforces — minimal, geometric, vector-friendly, colorblind-safe palette — so the icon visually matches the figures the plugin produces.
+## Resources
 
-**Prompt (paste into Midjourney / DALL·E / Imagen / Ideogram / Recraft):**
+- **[Claude Code](https://docs.claude.com/en/docs/claude-code/overview)** — the CLI / IDE harness this plugin runs in.
+- **[Okabe-Ito palette](https://jfly.uni-koeln.de/color/)** — the colorblind-safe categorical palette baked into both backends.
+- **[matplotlib](https://matplotlib.org/)** — the data-plot backend.
+- **[TikZ & PGF manual](https://pgf-tikz.github.io/pgf/pgfmanual.pdf)** — the diagram backend.
 
-```text
-Minimal flat vector logo for "figura" — a tool for publication-quality
-academic figures. A single rounded square containing a stylized line plot
-(thin axes, two clean curves) overlaid with a small box-and-arrow node
-flowchart hint, suggesting both data plots and diagrams. Geometric, clean,
-print-friendly. Limited Okabe-Ito colorblind-safe palette: deep blue
-(#0072B2), warm orange (#E69F00), bluish green (#009E73), dark ink black
-(#1A1A1A) line work on a soft off-white background (#F8F8F5). No gradients,
-no drop shadows, no 3D, no text, no skeumorphism. Flat 2D, hairline strokes,
-generous negative space, sharp at small sizes. Square 1:1, centered,
-trimmable to a circle. Style references: Stripe icons, Linear app icons,
-Tailwind UI marks. SVG-aesthetic.
-```
 
-**Recommended settings**
+<a name="contributing_anchor"></a>
+## Contributing
 
-- **Aspect ratio:** `1:1` square (most platforms crop to square or circle).
-- **Output size:** at least 1024 × 1024 so the result downsamples cleanly to a 32 × 32 favicon.
-- **Variants to ask for:** light-on-dark (`#1A1A1A` background, lighter Okabe-Ito strokes), and a single-color monochrome version for places that demand it (favicon fallbacks, OS dark-mode tinting).
-- **Iteration:** if first round is too busy, ask for "even simpler — 2–3 strokes maximum, single accent color". Most logos benefit from one more pass of removal.
-- **Vectorization:** rasterized output → run through [recraft.ai](https://recraft.ai) or `vtracer` to get an `.svg`. Final logo lives at `docs/logo.svg` (referenced from `plugin.json`).
+`figura` is open-source and contributions are welcome — bug reports, defect-catalog entries, new venue styles, additional reference patterns. Please open an issue describing the change before opening a large PR.
 
-**What to avoid**
+- **Bug Report** — if a figure renders incorrectly or a slash command fails, open a [bug report](https://github.com/chrischoy/figura/issues/new) with the source script / `.tex` and the rendered PNG.
+- **Feature Request** — if there's a paper aesthetic, venue style, or defect class that isn't covered, open a [feature request](https://github.com/chrischoy/figura/issues/new) with an example of the figure you're trying to produce.
+- **New defect-catalog entry** — if you hit a render bug whose fix isn't in `references/iteration.md` or `references/tikz.md`, a PR adding the symptom, cause, and fix is the highest-leverage contribution.
 
-- Anthropomorphic mascots, faces, hands, eyes — they fight a clean technical brand.
-- Photorealism, gradients, glow, glass, beveling — the skill's whole anti-pattern list applies to the icon too.
-- Including the literal word "figura" inside the mark — keep mark and wordmark separable so the favicon is just the mark.
-
----
 
 ## License
 
