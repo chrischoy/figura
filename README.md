@@ -1,6 +1,8 @@
-<h1 align="center">
+<p align="center">
     <img src="assets/figura-icon.png" width="160" alt="figura">
-</h1>
+</p>
+
+<h1 align="center">figura</h1>
 
 <p align="center">
     <i align="center">Publication-quality figures, plots, and diagrams for academic papers — render → view → fix until print-size defects are gone 🧪</i>
@@ -38,12 +40,6 @@ Two backends sit behind one workflow: **matplotlib** (`.py`) for data plots and 
 <summary>
  Features
 </summary> <br />
-
-<p align="center">
-    <img width="49%" src="docs/torus.png" alt="3D surface plot — torus shaded by depth, viridis, single-column square"/>
-&nbsp;
-    <img width="49%" src="docs/iteration_loop.png" alt="render → view → fix → repeat iteration loop"/>
-</p>
 
 - **Render → view → fix loop, capped at two cycles.** First-pass renders almost always have at least one user-visible defect (small fonts, legend overlap, tick collision, arrow-through-text). The plugin views the rendered PNG at 300 DPI scaled to print size, names defects from a catalog, and applies standard fixes.
 - **matplotlib pipeline that matches Nature / NeurIPS / IEEE house style.** Embedded TrueType fonts (`pdf.fonttype = 42`), Helvetica + `stixsans` math, top/right spines off, Okabe-Ito categorical palette, perceptually uniform colormaps, print-size figure dimensions. `export.save()` emits PDF + SVG + PNG atomically.
@@ -223,8 +219,8 @@ skills/
 assets/
   figura-icon.png            project icon
 docs/
-  torus.png                  README hero image
-  iteration_loop.png         README iteration-loop diagram
+  iteration_loop.png         README iteration-loop hero
+  torus.png                  reference output of skills/figura/examples/torus.py
 README.md
 requirements.txt             core Python deps (host env, not Claude Code)
 requirements-extras.txt      optional deps for diagram / SVG / scipy patterns
