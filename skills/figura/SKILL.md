@@ -169,7 +169,7 @@ Each reference file's code snippets already use `pubstyle`, `colors`, and `expor
 
 ## Slash Commands: which one to reach for
 
-The plugin ships four user-facing commands. Pick by which class of work dominates:
+The plugin ships six user-facing commands. Pick by which class of work dominates:
 
 | Situation | Command |
 |---|---|
@@ -179,5 +179,7 @@ The plugin ships four user-facing commands. Pick by which class of work dominate
 | Need a defect report without modifying anything | `/figura:analyze-image` |
 | jet/rainbow palette in use, or color-only encoding | `/figura:beautify` |
 | Dynamic-range squeeze (outlier dominates axis, comparison band compressed) | `/figura:iterate` |
+| Need to switch a script to a specific venue's font/spacing (NeurIPS, ICML, IEEE, CVPR, …) | `/figura:paper-style` |
+| Need PNGs of every PDF in a paper's `figures/` directory (for Slack, README, slides) | `/figura:export-png-bundle` |
 
-`/figura:analyze-image` is read-only. The other three modify the source. After analyze-image returns its defect table, route to the modifying command whose category dominates.
+`/figura:analyze-image` and `/figura:export-png-bundle` are read-only / non-destructive. `/figura:beautify`, `/figura:fix-overlap`, `/figura:iterate`, `/figura:paper-style` modify the source script. After analyze-image returns its defect table, route to the modifying command whose category dominates.

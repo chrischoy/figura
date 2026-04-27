@@ -115,6 +115,14 @@ _VENUES = {
         "ytick.labelsize": 7,
         "legend.fontsize": 7,
     },
+    "cvpr": {
+        # CVPR uses IEEE-format two-column at 8.5x11. Slightly smaller than NeurIPS.
+        "font.size": 8,
+        "axes.labelsize": 8,
+        "xtick.labelsize": 7,
+        "ytick.labelsize": 7,
+        "legend.fontsize": 7,
+    },
     "acm": {
         "font.size": 8,
         "axes.labelsize": 8,
@@ -140,7 +148,7 @@ def apply(venue: str = "generic", extra: Optional[dict] = None) -> None:
     apply() call.
 
     Args:
-        venue: One of 'generic', 'neurips', 'icml', 'iclr', 'ieee', 'acm', 'nature'.
+        venue: One of 'generic', 'neurips', 'icml', 'iclr', 'ieee', 'cvpr', 'acm', 'nature'.
         extra: Optional dict of additional rcParams to override on top.
     """
     if venue not in _VENUES:
