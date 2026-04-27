@@ -1,4 +1,4 @@
-"""3D torus surface — demonstrates PaperFigureSkill on a 3D plot."""
+"""3D torus surface — demonstrates figura on a 3D plot."""
 
 import sys
 from pathlib import Path

@@ -4,7 +4,7 @@ argument-hint: <path-to-figure-script.py-or-diagram.tex>
 allowed-tools: ["Bash", "Read", "Edit", "Write"]
 ---
 
-Beautify the figure produced by `$ARGUMENTS`. The skill at `skills/PaperFigureSkill/` documents the policy — apply it, do not improvise.
+Beautify the figure produced by `$ARGUMENTS`. The skill at `skills/figura/` documents the policy — apply it, do not improvise.
 
 Dispatch on file extension:
 
@@ -16,7 +16,7 @@ Dispatch on file extension:
 
 ## matplotlib branch (`*.py`)
 
-Pre-flight read the script and check for these "default matplotlib" tells (full anti-pattern list in `skills/PaperFigureSkill/SKILL.md` § "Anti-Patterns"):
+Pre-flight read the script and check for these "default matplotlib" tells (full anti-pattern list in `skills/figura/SKILL.md` § "Anti-Patterns"):
 
 - No `pubstyle.apply()` → fonts not embedded, defaults at 10pt, all four spines on.
 - No `colors.apply_cycle()` → matplotlib's tab10 cycle, not colorblind-safe.
@@ -31,7 +31,7 @@ Plan:
 2. Add the standard skill setup at the top:
    ```python
    import sys
-   sys.path.insert(0, "<absolute-path-to-this-repo>/skills/PaperFigureSkill/scripts")
+   sys.path.insert(0, "<absolute-path-to-this-repo>/skills/figura/scripts")
    import matplotlib
    matplotlib.use("Agg")
    import pubstyle, colors, export
@@ -43,13 +43,13 @@ Plan:
 5. Run the script and view the rendered PNG to confirm the upgrade landed cleanly.
 6. If a venue is mentioned (NeurIPS, IEEE, Nature), pass it: `pubstyle.apply(venue="ieee")`.
 
-Stop when the figure passes the anti-pattern checklist. Do not start the iteration loop unless explicitly asked — that's `/PaperFigureSkill:iterate`.
+Stop when the figure passes the anti-pattern checklist. Do not start the iteration loop unless explicitly asked — that's `/figura:iterate`.
 
 ---
 
 ## TikZ branch (`*.tex`)
 
-Pre-flight read the source and check for these "default TikZ" tells (full reference: `skills/PaperFigureSkill/references/tikz.md`):
+Pre-flight read the source and check for these "default TikZ" tells (full reference: `skills/figura/references/tikz.md`):
 
 - **`\documentclass{article}` / `{report}` instead of `standalone`** → diagram bakes into a paginated A4/letter PDF; can't `\includegraphics{}` cleanly. Convert to `\documentclass[tikz,border=4pt]{standalone}`.
 - **Default Computer Modern serif** → math-paper look that clashes with sans-serif body text in most venues. Add `\usepackage{helvet}\renewcommand{\familydefault}{\sfdefault}` (or `fontspec` under LuaLaTeX to match the paper's actual body font).
@@ -81,12 +81,12 @@ Plan:
 
 1. Read `$ARGUMENTS`. List which TikZ anti-patterns it hits.
 2. If the document class isn't `standalone`, convert it. Strip out unrelated paper preamble, keep only what the diagram needs.
-3. Add the standard preamble (helvet, libraries, Okabe-Ito colors, reusable styles). The template at `skills/PaperFigureSkill/examples/diagram_flow.tex` is a copy-paste starting point.
+3. Add the standard preamble (helvet, libraries, Okabe-Ito colors, reusable styles). The template at `skills/figura/examples/diagram_flow.tex` is a copy-paste starting point.
 4. Replace raw colors with `okBlue` / `okOrange` / etc. Group nodes by role: input/output one color, transforms another, branching/decision a third.
 5. Pull inline node options into named styles defined once at the top of `tikzpicture`.
 6. Replace hardcoded coordinates with `positioning`-relative placement where feasible.
 7. Set `font=\small`, `line width=0.7pt`, uniform `>={Stealth[...]}`.
-8. Build with `bash skills/PaperFigureSkill/scripts/tikz_build.sh $ARGUMENTS figures` and view the PNG to confirm the upgrade landed cleanly.
+8. Build with `bash skills/figura/scripts/tikz_build.sh $ARGUMENTS figures` and view the PNG to confirm the upgrade landed cleanly.
 9. **Do not change the diagram's logical content** — same nodes, same edges, same routing topology. Only restyle.
 
-Stop when the diagram passes the anti-pattern checklist. Do not start the iteration loop unless explicitly asked — that's `/PaperFigureSkill:iterate`.
+Stop when the diagram passes the anti-pattern checklist. Do not start the iteration loop unless explicitly asked — that's `/figura:iterate`.

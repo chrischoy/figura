@@ -1,5 +1,5 @@
 ---
-name: PaperFigureSkill
+name: figura
 description: Create publication-quality figures, plots, and diagrams for academic papers, with a render-view-fix iteration loop for catching visual defects. Use this skill whenever the user is preparing visuals for a paper, thesis, preprint, technical report, or conference submission — including data plots (line, bar, scatter, heatmap, violin, etc. via matplotlib/seaborn), system or architecture diagrams, schematics, model illustrations, ablation comparisons, or any figure intended for inclusion in a written research deliverable. Trigger on phrases like "figure for my paper," "plot for the manuscript," "architecture diagram," "schematic," "make this look publication-ready," "submission-quality figure," "iterate on this figure," "fix this plot," or any time the user references LaTeX, NeurIPS, ICML, ICLR, IEEE, ACM, Nature, Science, or arXiv. Also use when the user wants to fix or upgrade a figure that "looks like default matplotlib," asks for a colorblind-safe / vector / print-ready version, or wants Claude to visually inspect a rendered figure and fix legibility / overlap / legend / clipping issues. Output files should be vector when possible (PDF/SVG) with PNG only as a high-DPI raster fallback (the PNG also serves as the print-size preview for visual iteration).
 ---
 

@@ -6,7 +6,7 @@ allowed-tools: ["Read"]
 
 Audit the figure at `$ARGUMENTS`. Read-only — do not edit any source files, do not re-render, do not propose patches. The output is a defect report the user can act on.
 
-Use the inspection prompt and defect categories from `skills/PaperFigureSkill/references/iteration.md` § "Visual Inspection Prompt". Report every issue you can see at the image's native resolution (the PNG renders at 300 DPI, sized to print dimensions, so on-screen pixels match what a reader sees on paper).
+Use the inspection prompt and defect categories from `skills/figura/references/iteration.md` § "Visual Inspection Prompt". Report every issue you can see at the image's native resolution (the PNG renders at 300 DPI, sized to print dimensions, so on-screen pixels match what a reader sees on paper).
 
 Procedure:
 
@@ -24,7 +24,7 @@ Categories to scan:
 - **Encoding** — series distinguishable from each other? If grayscale-printed, can you still tell them apart (color + line style or color + marker)? Diverging colormap centered on zero? `jet`/`rainbow` in use (auto-flag)?
 - **Layout** — whitespace evenly distributed or one region cramped while another is empty? Subplot panels visually balanced (similar plot areas, aligned axes)? Grouped bars: bars within a group close, gaps between groups?
 
-If the image is a **TikZ / boxes-and-arrows diagram** rather than a data plot, also scan for these defects (catalog: `skills/PaperFigureSkill/references/tikz.md` § "Defect catalog"):
+If the image is a **TikZ / boxes-and-arrows diagram** rather than a data plot, also scan for these defects (catalog: `skills/figura/references/tikz.md` § "Defect catalog"):
 
 - **Arrow crosses through node text** — line passing through a label, often appearing to underline it. Common with `diamond` shapes.
 - **Loop-back arrow crosses unrelated nodes** — feedback edge from bottom row to top row passing through an unrelated node like an input box.
@@ -43,4 +43,4 @@ Report format (markdown table):
 
 After the table, write 1–2 sentences of overall verdict: "ship it", "one fix cycle needed", or "two fix cycles needed and which class is biggest". Skip cosmetic nitpicks a reader would never notice.
 
-If the user wants to apply fixes, point them at `/PaperFigureSkill:iterate`, `/PaperFigureSkill:beautify`, or `/PaperFigureSkill:fix-overlap` depending on which class dominates.
+If the user wants to apply fixes, point them at `/figura:iterate`, `/figura:beautify`, or `/figura:fix-overlap` depending on which class dominates.

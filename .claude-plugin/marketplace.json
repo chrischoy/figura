@@ -1,12 +1,12 @@
 {
-  "name": "PaperFigureSkill",
+  "name": "figura",
   "owner": {
     "name": "Christopher Choy"
   },
-  "description": "Marketplace for the PaperFigureSkill Claude Code skill.",
+  "description": "Marketplace for the figura Claude Code skill.",
   "plugins": [
     {
-      "name": "PaperFigureSkill",
+      "name": "figura",
       "source": "./",
       "description": "Publication-quality figures, plots, and diagrams for academic papers, with a render-view-fix iteration loop.",
       "version": "0.1.0"
