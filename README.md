@@ -32,7 +32,7 @@
 
 `figura` enables you to produce paper-ready figures, plots, and diagrams without falling into the "default matplotlib" or "default TikZ" look that gives away a rushed submission.
 
-It ships as a [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) plugin: an auto-triggering skill plus four slash commands that run the same render → view → fix loop on every figure. The skill knows how to inspect a rendered PNG at print resolution, find user-visible defects, and apply standard fixes from a defect catalog — capped at two cycles so you don't chase pixels.
+It ships as a [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) plugin: an auto-triggering skill plus six slash commands that run the same render → view → fix loop on every figure. The skill knows how to inspect a rendered PNG at print resolution, find user-visible defects, and apply standard fixes from a defect catalog — capped at two cycles so you don't chase pixels. Image audits are delegated to a dedicated subagent so the main thread doesn't absorb image bytes.
 
 Two backends sit behind one workflow: **matplotlib** (`.py`) for data plots and **TikZ / LaTeX** (`.tex`) for diagrams that match a paper's body typography. Same Okabe-Ito colorblind-safe palette, same Helvetica defaults, same export pipeline.
 
@@ -45,7 +45,8 @@ Two backends sit behind one workflow: **matplotlib** (`.py`) for data plots and 
 - **matplotlib pipeline that matches Nature / NeurIPS / IEEE house style.** Embedded TrueType fonts (`pdf.fonttype = 42`), Helvetica + `stixsans` math, top/right spines off, Okabe-Ito categorical palette, perceptually uniform colormaps, print-size figure dimensions. `export.save()` emits PDF + SVG + PNG atomically.
 - **TikZ standalone diagrams that drop straight into a LaTeX paper.** `\documentclass[tikz,border=4pt]{standalone}`, the same Okabe-Ito hex codes as the matplotlib palette, reusable `stage` / `decision` / `io` styles, build helper that compiles to PDF and a 300 DPI PNG preview for the iteration loop.
 - **Defect catalog covering both backends.** matplotlib: tick collisions, legend covering data, multi-panel cramping, panel labels clipped. TikZ: arrow-through-diamond-text, loop-arrow-crossing-rows, label-on-top-of-node — each with copy-paste fix snippets.
-- **Four slash commands that dispatch on extension.** `/figura:iterate`, `/figura:beautify`, `/figura:fix-overlap`, `/figura:analyze-image`. `.py` → matplotlib branch. `.tex` → TikZ branch.
+- **Six slash commands.** `/figura:iterate`, `/figura:beautify`, `/figura:fix-overlap` dispatch on extension (`.py` → matplotlib, `.tex` → TikZ). `/figura:paper-style <venue> <script>` switches a script to a venue's font/spacing (NeurIPS, ICML, ICLR, IEEE, CVPR, ACM, Nature). `/figura:export-png-bundle <dir>` bulk-renders every PDF in a directory to PNG@300dpi for board uploads / README embeds / slide decks. `/figura:analyze-image <image>` is a read-only visual audit that delegates to a `figura-image-auditor` subagent — defect table comes back without filling the main context with image bytes.
+- **Six-category defect taxonomy.** Legibility, collision, truncation, encoding, layout, and dynamic-range / axis-scaling (the most-hit class on real papers — outlier dominates axis, decay-to-zero curve with mostly post-convergence flatline, multi-modal density spanning orders of magnitude).
 
 </details>
 
@@ -83,14 +84,14 @@ The skill also auto-triggers on phrases like *"figure for my paper"*, *"plot for
   Slash commands
 </summary> <br />
 
-All four commands dispatch on file extension: `.py` → matplotlib branch, `.tex` → TikZ branch.
-
 | Command | What it does |
 |---------|--------------|
-| `/figura:iterate <script.py \| diagram.tex>` | Runs the render → view → fix loop. Caps at two cycles. |
+| `/figura:iterate <script.py \| diagram.tex>` | Runs the render → view → fix loop. Caps at two cycles. Dispatches on extension (`.py` → matplotlib, `.tex` → TikZ). |
 | `/figura:beautify <script.py \| diagram.tex>` | Upgrades a "default-looking" figure to publication style (fonts, palette, spines / borders, vector export). |
 | `/figura:fix-overlap <script.py \| diagram.tex>` | Targeted collision fixer — tick labels & legend (matplotlib) or arrow-through-text & loop-arrow-crossing-nodes (TikZ). |
-| `/figura:analyze-image <image.png \| .pdf>` | Read-only visual audit. Reports defects by category and severity; does not modify anything. |
+| `/figura:paper-style <venue> <script.py>` | Switches a script to a venue's font/spacing. Venues: `neurips`, `icml`, `iclr`, `ieee`, `cvpr`, `acm`, `nature`, `generic`. |
+| `/figura:export-png-bundle <input-dir> [output-dir]` | Bulk-renders every PDF in a directory to PNG@300dpi via `pdftoppm`. Idempotent (skips up-to-date PNGs). For board uploads, README embeds, slide decks. |
+| `/figura:analyze-image <image.png \| .pdf>` | Read-only visual audit, delegated to the `figura-image-auditor` subagent. Returns a severity-tagged defect table + routing recommendation; does not modify anything. Image bytes stay in the subagent's context. |
 
 </details>
 
@@ -177,7 +178,7 @@ Running figura locally
    \includegraphics[width=\columnwidth]{figures/my_fig}
    ```
 
-4. Venue-specific defaults: `pubstyle.apply(venue="ieee")` (also `neurips`, `icml`, `iclr`, `acm`, `nature`).
+4. Venue-specific defaults: `pubstyle.apply(venue="ieee")` (also `neurips`, `icml`, `iclr`, `cvpr`, `acm`, `nature`).
 
 5. Engine override for TikZ: `TIKZ_ENGINE=lualatex bash skills/figura/scripts/tikz_build.sh ...`.
 
@@ -192,26 +193,31 @@ Repository layout
 .claude-plugin/
   marketplace.json           single-plugin marketplace
   plugin.json                plugin metadata
+agents/
+  figura-image-auditor.md    read-only image audit subagent (Read+Bash only)
 commands/
-  iterate.md                 /figura:iterate          render → view → fix
-  beautify.md                /figura:beautify         upgrade to pub style
-  fix-overlap.md             /figura:fix-overlap      targeted collision fix
-  analyze-image.md           /figura:analyze-image    read-only audit
+  iterate.md                 /figura:iterate           render → view → fix
+  beautify.md                /figura:beautify          upgrade to pub style
+  fix-overlap.md             /figura:fix-overlap       targeted collision fix
+  paper-style.md             /figura:paper-style       apply venue style
+  export-png-bundle.md       /figura:export-png-bundle bulk PDF → PNG@300dpi
+  analyze-image.md           /figura:analyze-image     read-only audit (delegates to subagent)
 skills/
   figura/
     SKILL.md                 entry point; loaded into Claude's context
     scripts/
-      pubstyle.py            publication rcParams (fonts, spines, vector-safe)
+      pubstyle.py            publication rcParams (fonts, spines, vector-safe, venue presets)
       colors.py              colorblind-safe palettes (Okabe-Ito, Tol Muted)
       export.py              atomic multi-format save (PDF + SVG + PNG)
       tikz_build.sh          pdflatex → 300 DPI PNG preview helper
+      export_png_bundle.sh   bulk PDF → PNG@300dpi (poppler/pdftoppm)
     references/
       plots.md               line, bar, scatter, heatmap, violin, multi-panel,
-                             histogram, ablation, 3D surface
+                             histogram, ablation, 3D surface, inset axes
       diagrams.md            matplotlib / graphviz / hand-SVG patterns
       tikz.md                TikZ template, build loop, defect catalog
-      iteration.md           render → view → fix loop + defect catalog
-      checklist.md           pre-submission QA
+      iteration.md           render → view → fix loop + 6-category defect catalog
+      checklist.md           pre-submission QA (pdffonts Type3 gate, palette lock)
     examples/
       torus.py               runnable end-to-end 3D surface example
       diagram_flow.tex       runnable TikZ standalone flowchart template
