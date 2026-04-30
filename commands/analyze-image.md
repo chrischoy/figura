@@ -1,10 +1,12 @@
 ---
-description: Read-only visual audit of a rendered figure (PNG or PDF). Delegates to the figura-image-auditor subagent so the image bytes do not pollute the main context.
-argument-hint: <path-to-image-or-pdf> [path-to-producing-script]
+description: Read-only visual audit of a rendered figure (PNG, PDF, or SVG). Delegates to the figura-image-auditor subagent so the image bytes do not pollute the main context.
+argument-hint: <path-to-image-pdf-or-svg> [path-to-producing-script]
 allowed-tools: ["Agent"]
 ---
 
 Audit the figure at `$ARGUMENTS` by **delegating to the `figura-image-auditor` subagent**. The subagent reads the image, walks the six defect categories, and returns a compact defect table. The main thread does not load image bytes.
+
+Supported inputs: PNG, PDF, SVG. The subagent rasterizes SVG to PNG via the bundled `svg_to_png.sh` helper before reading.
 
 If `$ARGUMENTS` is empty, ask the user for a path. Do not improvise (no globbing, no guessing).
 

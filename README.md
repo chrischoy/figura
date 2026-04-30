@@ -90,8 +90,8 @@ The skill also auto-triggers on phrases like *"figure for my paper"*, *"plot for
 | `/figura:beautify <script.py \| diagram.tex>` | Upgrades a "default-looking" figure to publication style (fonts, palette, spines / borders, vector export). |
 | `/figura:fix-overlap <script.py \| diagram.tex>` | Targeted collision fixer — tick labels & legend (matplotlib) or arrow-through-text & loop-arrow-crossing-nodes (TikZ). |
 | `/figura:paper-style <venue> <script.py>` | Switches a script to a venue's font/spacing. Venues: `neurips`, `icml`, `iclr`, `ieee`, `cvpr`, `acm`, `nature`, `generic`. |
-| `/figura:export-png-bundle <input-dir> [output-dir]` | Bulk-renders every PDF in a directory to PNG@300dpi via `pdftoppm`. Idempotent (skips up-to-date PNGs). For board uploads, README embeds, slide decks. |
-| `/figura:analyze-image <image.png \| .pdf>` | Read-only visual audit, delegated to the `figura-image-auditor` subagent. Returns a severity-tagged defect table + routing recommendation; does not modify anything. Image bytes stay in the subagent's context. |
+| `/figura:export-png-bundle <input-dir> [output-dir]` | Bulk-renders every PDF and SVG in a directory to PNG@300dpi (`pdftoppm` for PDFs, `rsvg-convert`/`cairosvg`/`inkscape`/`magick` chain for SVGs). Idempotent. For board uploads, README embeds, slide decks. |
+| `/figura:analyze-image <image.png \| .pdf \| .svg>` | Read-only visual audit, delegated to the `figura-image-auditor` subagent. SVGs auto-rasterized to PNG before reading. Returns a severity-tagged defect table + routing recommendation; does not modify anything. Image bytes stay in the subagent's context. |
 
 </details>
 
@@ -124,7 +124,8 @@ To be able to use figura locally, make sure that you have the following installe
 
 - Python 3.9+
 - TeX Live or MacTeX (for the TikZ branch)
-- `pdftoppm` (`brew install poppler` / `apt install poppler-utils`) — PNG previews
+- `pdftoppm` (`brew install poppler` / `apt install poppler-utils`) — PDF → PNG previews
+- SVG → PNG converter *(any one)* — `brew install librsvg` (rsvg-convert), `pip install cairosvg`, `brew install --cask inkscape`, or `brew install imagemagick`. Required only if you want `/figura:analyze-image` or `/figura:export-png-bundle` to handle SVG inputs.
 - `pdf2svg` *(optional)* — emits an SVG alongside the PDF
 - Graphviz *(optional, for graphviz diagrams)* — `brew install graphviz` / `apt install graphviz`
 
@@ -210,7 +211,8 @@ skills/
       colors.py              colorblind-safe palettes (Okabe-Ito, Tol Muted)
       export.py              atomic multi-format save (PDF + SVG + PNG)
       tikz_build.sh          pdflatex → 300 DPI PNG preview helper
-      export_png_bundle.sh   bulk PDF → PNG@300dpi (poppler/pdftoppm)
+      svg_to_png.sh          SVG → PNG@300dpi (rsvg-convert/cairosvg/inkscape/magick chain)
+      export_png_bundle.sh   bulk PDF + SVG → PNG@300dpi
     references/
       plots.md               line, bar, scatter, heatmap, violin, multi-panel,
                              histogram, ablation, 3D surface, inset axes

@@ -28,13 +28,19 @@ If neither path resolves, audit using the inline category list below — it cove
 
 2. **Load references** as described above. Spend at most 2 Read calls — `iteration.md` is the load-bearing one; `tikz.md` only if the figure is a diagram.
 
-3. **Read the image.** Use the `Read` tool. PNG and PDF both supported. The PNG is normally rendered at 300 DPI sized to print dimensions, so on-screen pixels match printed paper.
+3. **SVG handling.** The `Read` tool can't view SVG bytes as an image. If the supplied path ends in `.svg`, convert it to PNG first via the bundled helper:
+   ```bash
+   bash "${CLAUDE_PLUGIN_ROOT}/skills/figura/scripts/svg_to_png.sh" <input.svg> /tmp/figura_audit_$$.png
+   ```
+   Then `Read` the resulting PNG. The script tries `rsvg-convert` → `cairosvg` → `inkscape` → `magick` in order; if none are installed, it prints install hints — surface those to the parent agent and stop.
 
-4. **Print-size sanity (if a script path was supplied).** If the caller passed the producing script path, `grep -n 'figsize' <script>` to confirm the figure was built at a target column width (NeurIPS/ICML single ≈ 3.25 in, double ≈ 6.75 in; IEEE single ≈ 3.5 in, double ≈ 7.16 in). Flag a script with `figsize=(13, 4.5)` or similar — that figure will look fine on screen and tiny in print.
+4. **Read the image.** Use the `Read` tool. PNG and PDF both supported directly; SVG via the conversion step above. The PNG is normally rendered at 300 DPI sized to print dimensions, so on-screen pixels match printed paper.
 
-5. **Walk the figure.** For multi-panel figures, walk panels in **reading order**: top-left → top-right → bottom-left → bottom-right. Report defects per-panel.
+5. **Print-size sanity (if a script path was supplied).** If the caller passed the producing script path, `grep -n 'figsize' <script>` to confirm the figure was built at a target column width (NeurIPS/ICML single ≈ 3.25 in, double ≈ 6.75 in; IEEE single ≈ 3.5 in, double ≈ 7.16 in). Flag a script with `figsize=(13, 4.5)` or similar — that figure will look fine on screen and tiny in print.
 
-6. **Scan all six categories** using the inspection prompt you loaded from `iteration.md`. Inline summary as fallback:
+6. **Walk the figure.** For multi-panel figures, walk panels in **reading order**: top-left → top-right → bottom-left → bottom-right. Report defects per-panel.
+
+7. **Scan all six categories** using the inspection prompt you loaded from `iteration.md`. Inline summary as fallback:
 
    - **Legibility** — tick/axis/legend text readable without squinting? Lines thick enough? Markers distinguishable? Error bars visible? Math glyphs vector and crisp?
    - **Collision / overlap** — tick labels colliding? Legend covering data? Annotations overlapping data? Multi-panel: titles or labels colliding with adjacent panels? Colorbar or inset axes hitting the legend or main plot?
@@ -43,7 +49,7 @@ If neither path resolves, audit using the inline category list below — it cove
    - **Layout** — whitespace evenly distributed? Subplot panels visually balanced? Grouped bars: bars within a group close, gaps between groups?
    - **Dynamic range / axis scaling** — does any axis have one feature consuming >80% of the visual area while the comparison-relevant range is squeezed into <20%? Outlier on linear y? Decay-to-zero curve with mostly post-convergence flatline? Multi-modal density spanning orders of magnitude?
 
-7. **TikZ-specific scan** (if the image is a boxes-and-arrows diagram, not a data plot). Use the catalog you loaded from `tikz.md`. Inline summary as fallback:
+8. **TikZ-specific scan** (if the image is a boxes-and-arrows diagram, not a data plot). Use the catalog you loaded from `tikz.md`. Inline summary as fallback:
    - Arrow line crosses through node text (especially `diamond` shapes)
    - Loop-back arrow crosses unrelated nodes (typical `|-` / `-|` between rows)
    - Annotation label sits on top of a node body

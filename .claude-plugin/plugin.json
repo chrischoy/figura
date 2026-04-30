@@ -1,7 +1,7 @@
 {
   "name": "figura",
   "description": "Publication-quality figures, plots, and diagrams for academic papers, with a render-view-fix iteration loop.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": {
     "name": "Christopher Choy"
   }
